@@ -13,6 +13,9 @@
 <canvas id="myCanvas" width="480" height="320"></canvas> 
 
 <script>
+
+	//Tutorial here https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_Breakout_game_pure_JavaScript/Game_over
+
 	//JavaScript goes in this section
 	//Canvas creation stuff
 	var canvas = document.getElementById("myCanvas");
@@ -27,14 +30,36 @@
 		var dy = -2; //How quickly the ball moves on the y
 
 		var ballRadius = 10; //Self-explanatory
-
 		
 		var paddleHeight = 10;
 		var paddleWidth = 75;
 		var paddleX = (canvas.width-paddleWidth) / 2;
 		var rightPressed = false;
 		var leftPressed = false;
+
+		var brickRowCount = 3;
+		var brickColumnCount = 5;
+		var brickWidth = 75;
+		var brickHeight = 20;
+		var brickPadding = 10;
+		var brickOffsetTop = 30;
+		var brickOffsetLeft = 30;
+		var bricks = []; //2D array
+			for(var c=0; c<brickColumnCount; c++) { //Nested For-Loop to sort out the bricks into the 2D array
+    				bricks[c] = [];
+    					for(var r=0; r<brickRowCount; r++) {
+        					bricks[c][r] = { x: 0, y: 0, status: 1 };
+    					}
+			}
+	
+		var score = 0;
+
+		//Things to help program look for user input
+		document.addEventListener("keydown", keyDownHandler, false); //A check for the keydown variable
+		document.addEventListener("keyup", keyUpHandler, false); //A check for the keyup variable
 		
+		document.addEventListener("mousemove", mouseMoveHandler, false);
+		document.addEventListener("touchstart", touchStartHandler, false);	
 
 		/* Messy draw function
 			function draw() {
@@ -48,6 +73,12 @@
     			 y += dy; //Makes the Ball move in the y direction
 			}
 		*/
+
+		function drawScore() {
+		    ctx.font = "16px Arial";
+		    ctx.fillStyle = "#0095DD";
+		    ctx.fillText("Score: "+score, 8, 20);
+		 }
 
 		function drawBall() {
  		   ctx.beginPath();
@@ -65,21 +96,69 @@
 			ctx.closePath();
 		}
 
+		function drawBricks() {
+    			for (var c = 0; c < brickColumnCount; c++) {
+        			for (var r = 0; r < brickRowCount; r++) {
+            				if (bricks[c][r].status == 1) {
+                				var brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+                				var brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+                				bricks[c][r].x = brickX;
+                				bricks[c][r].y = brickY;
+                				ctx.beginPath();
+                				ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                				ctx.fillStyle = "#0095DD";
+                				ctx.fill();
+                				ctx.closePath();
+            				}
+        			}
+    			}
+		}
+		
+		function collisionDetection() {
+		    for(var c=0; c<brickColumnCount; c++) {
+		        for(var r=0; r<brickRowCount; r++) {
+		            var b = bricks[c][r];
+		            if(b.status == 1) {
+		                if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+		                    dy = -dy;
+		                    b.status = 0;
+				    score++;
+				    if(score == brickRowCount*brickColumnCount) {
+                        		alert("YOU WIN, CONGRATULATIONS!");
+                        		document.location.reload();
+                        		clearInterval(interval); // Needed for Chrome to end game
+		                     }
+		                 }
+		             }
+		         }
+		     }
+		}
+
 		function draw() {
 		    ctx.clearRect(0, 0, canvas.width, canvas.height);
+		    drawBricks();
 		    drawBall(); //Performs the drawBall function
 		    drawPaddle();
+		    collisionDetection();
+		    drawScore();
 		    //Checks to see if Ball is about to collide with one of the walls
 		    	//Top and Bottom Wall
-			if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
-    				dx = -dx;
-				}
+			if(y + dy < ballRadius) {
+			    dy = -dy;
+			} else if(y + dy > canvas.height-ballRadius) { //Looks to see if the ball made contact with the paddle
+			    if(x > paddleX && x < paddleX + paddleWidth) {
+			        dy = -dy;
+			    }
+			    else {
+			        alert("GAME OVER");
+			        document.location.reload();
+			        clearInterval(interval);
+			    }
+			}
 			//Left and Right Wall
-			if(y + dy > canvas.height-ballRadius || y + dy < ballRadius) {
-   				dy = -dy;
+			if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+   				dx = -dx;
 				}
-		    x += dx;
-		    y += dy;
 
 		    //Paddle Movement
 			if(rightPressed) {
@@ -96,6 +175,9 @@
         				paddleX = 0;
     				}
 			}
+
+		    x += dx;
+		    y += dy;
 		}
 		
 		//Functions for recieving information about keystrokes
@@ -116,11 +198,24 @@
         				leftPressed = false;
     				}
 			}
+			function mouseMoveHandler(e) {
+			    var relativeX = e.clientX - canvas.offsetLeft;
+			    if(relativeX > 0 && relativeX < canvas.width) {
+			        paddleX = relativeX - paddleWidth/2;
+			    }
+			}
+			function touchStartHandler(e) {
+				var relativeX = e.clientX
+				if (relativeX < 240) {
+					paddleX = paddleX - 10;
+				}
+				else {
+					paddleX = paddleX + 10;
+				}
+			}
 		
-		document.addEventListener("keydown", keyDownHandler, false); //A check for the keydown variable
-		document.addEventListener("keyup", keyUpHandler, false); //A check for the keyup variable
-
-		setInterval(draw, 10); //Performs the function "draw" every 10 milliseconds
+		//setInterval(draw, 10); //Performs the function "draw" every 10 milliseconds
+		var interval = setInterval(draw, 10);
 
 	/* Practice Code for canvas work
 		//Draws a box
