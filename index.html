@@ -205,13 +205,10 @@
 			    }
 			}
 			function touchStartHandler(e) {
-				var relativeX = e.clientX
-				if (relativeX < 240) {
-					paddleX = paddleX - 10;
-				}
-				else {
-					paddleX = paddleX + 10;
-				}
+			    var relativeX = e.clientX - canvas.offsetLeft;
+			    if(relativeX > 0 && relativeX < canvas.width) {
+			        paddleX = relativeX - paddleWidth/2;
+			    }
 			}
 		
 		//setInterval(draw, 10); //Performs the function "draw" every 10 milliseconds
