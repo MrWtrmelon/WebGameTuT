@@ -59,7 +59,7 @@
 		document.addEventListener("keyup", keyUpHandler, false); //A check for the keyup variable
 		
 		document.addEventListener("mousemove", mouseMoveHandler, false);
-		document.addEventListener("touchstart", touchStartHandler, false);	
+		document.addEventListener("touchmove", touchMoveHandler, false);	
 
 		/* Messy draw function
 			function draw() {
@@ -204,7 +204,7 @@
 			        paddleX = relativeX - paddleWidth/2;
 			    }
 			}
-			function touchStartHandler(e) {
+			function touchMoveHandler(e) {
 			    var relativeX = e.clientX - canvas.offsetLeft;
 			    if(relativeX > 0 && relativeX < canvas.width) {
 			        paddleX = relativeX - paddleWidth/2;
